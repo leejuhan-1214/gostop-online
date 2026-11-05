@@ -18,4 +18,30 @@ test('visible names and art map to the server card identity, and clicks submit t
   cards[2].onclick();await new Promise(setImmediate);const sent=c.requests.find(r=>r.url.endsWith('/action'));assert.equal(JSON.parse(sent.opt.body).action.id,26);
   assert.equal(c.body.classList.playing,true);
 });
+test('captured cards stay together by type, including double-pi counts and the gukjin switch',async()=>{
+  const g=E.create();g.phase='play';g.turn=0;
+  const capturedIds=[47,32,21,8,41,12,1,10,4,0];
+  g.players[0].won=capturedIds.map(id=>all[id]);g.players[0].gukjinPi=true;g.players[1].won=[];
+  const c=makeClient(E.view(g,0));await new Promise(setImmediate);
+  const groups=c.get('my-won').children;
+  assert.deepEqual(groups.map(x=>x.attributes['data-kind']),['bright','animal','ribbon','pi']);
+  assert.deepEqual(groups.map(x=>x.children[0].textContent),['광 2','열끗 2','띠 2','피 7']);
+  const files=groups.map(x=>x.children[1].children.map(img=>img.src));
+  assert.deepEqual(files,[
+    ['assets/cards/m01-01.svg','assets/cards/m03-01.svg'],
+    ['assets/cards/m02-01.svg','assets/cards/m04-01.svg'],
+    ['assets/cards/m01-02.svg','assets/cards/m06-02.svg'],
+    ['assets/cards/m03-03.svg','assets/cards/m09-01.svg','assets/cards/m11-02.svg','assets/cards/m12-04.svg']
+  ]);
+  assert.equal(groups[3].children[1].children[1].alt,'9월 국화 피');
+  assert.deepEqual(c.get('other-won').children.map(x=>x.children[0].textContent),['광 0','열끗 0','띠 0','피 0']);
+  assert(c.get('other-won').children.every(x=>x.children[1].children[0].className==='won-empty'));
+  g.players[0].gukjinPi=false;
+  const switched=makeClient(E.view(g,0));await new Promise(setImmediate);
+  const next=switched.get('my-won').children;
+  assert.equal(next[1].children[0].textContent,'열끗 3');assert.equal(next[3].children[0].textContent,'피 5');
+  assert.equal(next[1].children[1].children[2].alt,'9월 국화 열');
+  assert(!next[3].children[1].children.some(img=>img.src==='assets/cards/m09-01.svg'));
+  assert.deepEqual(g.players[0].won.map(x=>x.id),capturedIds);
+});
 test('the HTML includes all controls used by the client',()=>{const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');for(const id of ['turn-details','history-open','history','history-close','history-content','bot-difficulty','special-actions','floor','hand'])assert(html.includes(`id="${id}"`),id);});

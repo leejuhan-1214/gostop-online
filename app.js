@@ -25,12 +25,31 @@ function fitCards(){
     const inset=area.querySelector('.floor-stack')?6:0;
     const cellWidth=(width-px(css.columnGap)*(columns-1))/columns-inset;
     const cellHeight=(height-px(css.rowGap)*(rows-1))/rows-inset;
-    const size=Math.max(0,Math.floor(Math.min(cellWidth,cellHeight*103.2/168.2,id==='hand'?104:96)*100)/100);
+    const size=Math.max(0,Math.floor(Math.min(cellWidth,cellHeight*103.2/168.2,id==='hand'?76:64)*100)/100);
     area.style.setProperty('--card-width',size+'px');
   }
 }
 function card(c,clickable,onClick){const b=document.createElement('button'),type=lastView?.stacks&&(c.id===41||c.id===47)?'쌍피':c.type;b.type='button';b.className='card '+(c.type==='광'?'bright':'');b.disabled=!clickable||busy;b.setAttribute('aria-label',cardLabel(c));const img=document.createElement('img');img.className='card-image';img.src=`assets/cards/m${String(c.month).padStart(2,'0')}-${String(c.id%4+1).padStart(2,'0')}.svg`;img.alt='';img.draggable=false;const month=document.createElement('span');month.className='card-month';month.textContent=`${c.month}월 ${NAMES[c.month-1]}`;const tag=document.createElement('span');tag.className='card-tag';tag.textContent=type;b.append(img,month,tag);if(onClick)b.onclick=onClick;return b;}
-function renderWon(id,p){const c=p.score.counts,box=$(id),summary=document.createElement('span');summary.className='won-summary';summary.textContent=`광 ${c.광}  ·  열끗 ${c.열}  ·  띠 ${c.띠}  ·  피 ${c.피}`;const rack=document.createElement('div');rack.className='won-cards';const kind=x=>x.id===32&&p.gukjinPi?'피':x.type,ordered=p.won.slice().sort((a,b)=>['광','열','띠','피'].indexOf(kind(a))-['광','열','띠','피'].indexOf(kind(b))||a.id-b.id);for(const item of ordered){const img=document.createElement('img');img.src=`assets/cards/m${String(item.month).padStart(2,'0')}-${String(item.id%4+1).padStart(2,'0')}.svg`;img.alt=`${item.month}월 ${NAMES[item.month-1]} ${kind(item)}`;img.title=img.alt;rack.append(img);}box.replaceChildren(summary,rack);}
+function renderWon(id,p){
+  const kind=item=>item.id===32&&p.gukjinPi?'피':item.type;
+  const groups=[['광','광','bright'],['열','열끗','animal'],['띠','띠','ribbon'],['피','피','pi']].map(([type,name,key])=>{
+    const group=document.createElement('section'),label=document.createElement('span'),pile=document.createElement('div');
+    group.className='won-group';group.setAttribute('data-kind',key);
+    label.className='won-label';label.textContent=`${name} ${p.score.counts[type]}`;
+    group.setAttribute('aria-label',label.textContent);
+    const cards=p.won.filter(item=>kind(item)===type).sort((a,b)=>a.id-b.id);
+    pile.className='won-pile';pile.setAttribute('style',`--won-count: ${Math.max(1,cards.length)}`);
+    for(const item of cards){
+      const img=document.createElement('img');
+      img.src=`assets/cards/m${String(item.month).padStart(2,'0')}-${String(item.id%4+1).padStart(2,'0')}.svg`;
+      img.alt=`${item.month}월 ${NAMES[item.month-1]} ${kind(item)}`;img.title=img.alt;img.draggable=false;
+      pile.append(img);
+    }
+    if(!cards.length){const empty=document.createElement('span');empty.className='won-empty';empty.textContent='—';pile.append(empty);}
+    group.append(label,pile);return group;
+  });
+  $(id).replaceChildren(...groups);
+}
 function renderFloor(v,myTurn){const items=[],shown=new Set(),floor=v.floor.slice().sort((a,b)=>a.month-b.month||a.id-b.id);for(const c of floor){const stack=v.stacks&&Object.prototype.hasOwnProperty.call(v.stacks,c.month)?floor.filter(x=>x.month===c.month):[];if(stack.length===3){if(shown.has(c.month))continue;shown.add(c.month);const pile=document.createElement('div');pile.className='floor-stack';pile.setAttribute('aria-label',`${c.month}월 ${NAMES[c.month-1]} 세 장 쌓임`);for(const x of stack)pile.append(card(x,false));const label=document.createElement('span');label.className='stack-label';label.textContent='3장 쌓임';pile.append(label);items.push(pile);}else items.push(card(c,myTurn&&v.phase==='choose'&&v.pending.options.includes(c.id),()=>action({type:'choose',id:c.id})));} $('floor').replaceChildren(...items);}
 function describeTurn(t,seat){const who=t.seat===seat?'나':session.mode==='bot'?'봇':'상대';const played=t.played?.length?t.played.map(cardLabel).join(', '):'손패 없이 뒤집기';const drawn=t.drawn?cardLabel(t.drawn):'아직 안 뒤집음';const captures=(t.captures||[]).map(c=>`${c.source==='draw'?'뒤집기로':c.source==='bonus'?'피 가져오기':'낸 패로'} ${c.cards.map(cardLabel).join(' + ')}`);return `${who} · 낸 패: ${played} / 뒤집은 패: ${drawn}${captures.length?' / 획득: '+captures.join(' | '):''}${t.events?.length?' / '+t.events.join(', '):''}`;}
 function renderHistory(v,seat){const turns=(v.lastTurns||[]).slice(-2);if(v.inTurn){if(turns.length>=2)turns.shift();turns.push({...v.inTurn,seat:v.turn,events:[]});}const box=$('turn-details'),full=$('history-content'),lines=[],details=[];for(const t of turns){const text=describeTurn(t,seat),line=document.createElement('div'),detail=document.createElement('p'),who=t.seat===seat?'나':session.mode==='bot'?'봇':'상대',played=t.played?.length?t.played.map(cardLabel).join(', '):'뒤집기만';line.className='turn-line';line.textContent=`${who} 낸 패 ${played} · 뒤집은 패 ${t.drawn?cardLabel(t.drawn):'대기 중'}`;line.title=text;detail.textContent=text;lines.push(line);details.push(detail);}box.replaceChildren(...lines);full.replaceChildren(...details);box.classList.toggle('hidden',lines.length===0);$('history-open').classList.toggle('hidden',lines.length===0);}

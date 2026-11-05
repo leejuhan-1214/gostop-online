@@ -92,10 +92,6 @@ body{background:#242019}
 @media(max-width:350px){.floor,.hand{grid-template-columns:repeat(4,minmax(0,1fr))}.card,.card.bright,.hand .card{height:auto}}
 
 /* Captured cards and three-card stacks stay visible during play. */
-.won{display:block;width:100%;max-width:100%;padding:7px 9px;overflow:hidden}
-.won-summary{display:block;margin-bottom:5px}
-.won-cards{display:flex;align-items:center;min-height:5px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;gap:3px}
-.won-cards img{display:block;flex:0 0 28px;width:28px;height:46px;object-fit:fill;border-radius:2px;background:white}
 .floor-stack{position:relative;flex:0 0 78px;width:78px;aspect-ratio:103/168;isolation:isolate}
 .floor-stack .card{position:absolute;width:calc(100% - 8px);height:auto;top:0;left:0}
 .floor-stack .card:nth-child(1){transform:translate(8px,5px)}
@@ -135,10 +131,6 @@ body.playing .avatar{width:23px;height:23px;font-size:12px}
 body.playing .player-strip b{font-size:12px}
 body.playing .player-strip small,body.playing .player-score span{font-size:10px}
 body.playing .player-score strong{font-size:16px}
-body.playing .won{display:flex;flex:0 0 auto;align-items:center;gap:5px;height:33px;min-height:0;margin:3px 0;padding:2px 5px}
-body.playing .won-summary{flex:0 0 auto;margin:0;font-size:10px;white-space:nowrap}
-body.playing .won-cards{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);flex:1 1 0;min-width:0;min-height:0;max-height:29px;padding:0 18px 0 0;gap:0;overflow:hidden}
-body.playing .won-cards img{display:block;width:18px;max-width:none;height:29px;min-width:18px;border-radius:2px}
 body.playing .center{display:flex;flex:1 1 0;gap:6px;min-height:0;max-height:none;overflow:hidden;margin:2px 0;padding:4px;border:1px solid #eff4c720;border-radius:8px;background:#001c0d40}
 body.playing .deck-wrap{display:flex;flex:0 0 31px;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;margin:0;font-size:9px}
 body.playing .deck-card{width:28px;height:40px;font-size:16px;box-shadow:2px 2px 0 #e7d3a8}
@@ -229,15 +221,24 @@ body.playing .game-foot>span{margin-right:auto}
 body.playing .game-head h2{font-size:19px}
 body.playing .player-strip b{font-size:13px}
 body.playing .player-score strong{font-size:18px}
-body.playing .won-summary{font-size:11px}
-body.playing .won{height:38px}
-body.playing .won-cards{max-height:34px;padding-right:22px}
-body.playing .won-cards img{width:22px;min-width:22px;height:34px}
 body.playing .card-month{font-size:clamp(8px,2.5vw,11px);background:#fffdf4ed}
 body.playing .card-tag{font-size:clamp(8px,2vw,10px);padding:2px 3px}
 body.playing .hand-title{font-size:12px}
-body.playing .hand{flex-basis:30vh;flex-basis:30dvh;max-height:220px;gap:4px}
+body.playing .hand{flex-basis:26vh;flex-basis:26dvh;max-height:180px;gap:4px}
 body.playing .game-foot>span{display:none}
 body.playing .game-foot{justify-content:flex-end;gap:18px}
-@media(min-width:761px){body.playing .hand{flex-basis:24vh;flex-basis:24dvh;max-height:180px}}
+@media(min-width:761px){body.playing .hand{flex-basis:20vh;flex-basis:20dvh;max-height:136px}}
 @media(max-height:540px){body.playing .hand{flex-basis:25vh;flex-basis:25dvh}body.playing .game-head h2{font-size:15px}body.playing .player-score strong{font-size:15px}body.playing .won-summary{font-size:10px}body.playing .won{height:25px}body.playing .won-cards{max-height:21px;padding-right:14px}body.playing .won-cards img{width:14px;min-width:14px;height:21px}}
+
+/* Four compact capture piles, with room for the larger pi collection. */
+body.playing .won{--won-card-width:26px;--won-step:18px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr) minmax(0,1.1fr) minmax(0,1.8fr);flex:0 0 auto;align-items:stretch;gap:6px;width:100%;max-width:100%;height:auto;min-height:0;margin:4px 0;padding:0;background:none;overflow:hidden}
+.won-group{display:grid;grid-template-rows:auto auto;align-content:start;min-width:0;gap:2px;padding:4px 6px;border:1px solid #c7d5ae30;border-radius:6px;background:#061c1170;overflow:hidden}
+.won-label{font-size:11px;font-weight:700;line-height:14px;white-space:nowrap;color:#e3e9cf}
+.won-group[data-kind="bright"] .won-label{color:#ffe1a1}
+.won-group[data-kind="ribbon"] .won-label{color:#f4b9ae}
+.won-pile{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);align-items:start;width:min(100%,calc(var(--won-count) * var(--won-step) + var(--won-card-width)));min-width:0;height:calc(var(--won-card-width) * 168.2 / 103.2);padding-right:var(--won-card-width);overflow:visible}
+.won-pile img{display:block;width:var(--won-card-width);height:auto;aspect-ratio:103.2/168.2;max-width:none;border-radius:2px;object-fit:contain;box-shadow:-1px 0 0 #071e15;pointer-events:none}
+.won-empty{color:#8ca790;font-size:12px;line-height:1.5}
+@media(min-width:761px){body.playing .hand{width:100%;max-width:860px;align-self:center}body.playing .floor{max-width:760px;align-self:center}}
+@media(max-width:760px){body.playing .won{--won-card-width:22px;--won-step:14px;gap:4px;margin:3px 0}.won-group{padding:3px 4px;gap:2px}.won-label{font-size:10px;line-height:12px}}
+@media(max-height:650px){body.playing .won{--won-card-width:16px;--won-step:10px;margin:2px 0}.won-group{display:flex;align-items:center;gap:3px;padding:2px 3px}.won-label{flex:0 0 auto;font-size:9px;line-height:10px}.won-pile{flex:1 1 auto}.won-empty{font-size:10px}body.playing .turn-details{display:none}body.playing .game-head .eyebrow{display:none}body.playing .game-head h2{font-size:16px;margin:2px 0}body.playing .hand{max-height:136px}}
