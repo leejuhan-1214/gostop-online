@@ -242,3 +242,10 @@ body.playing .won{--won-card-width:26px;--won-step:18px;display:grid;grid-templa
 @media(min-width:761px){body.playing .hand{width:100%;max-width:860px;align-self:center}body.playing .floor{max-width:760px;align-self:center}}
 @media(max-width:760px){body.playing .won{--won-card-width:22px;--won-step:14px;gap:4px;margin:3px 0}.won-group{padding:3px 4px;gap:2px}.won-label{font-size:10px;line-height:12px}}
 @media(max-height:650px){body.playing .won{--won-card-width:16px;--won-step:10px;margin:2px 0}.won-group{display:flex;align-items:center;gap:3px;padding:2px 3px}.won-label{flex:0 0 auto;font-size:9px;line-height:10px}.won-pile{flex:1 1 auto}.won-empty{font-size:10px}body.playing .turn-details{display:none}body.playing .game-head .eyebrow{display:none}body.playing .game-head h2{font-size:16px;margin:2px 0}body.playing .hand{max-height:136px}}
+
+/* Keep stack ownership and declared shakes readable without widening the table. */
+body.playing .stack-label{font-size:8px;line-height:1.15;white-space:normal;overflow-wrap:anywhere;padding:2px}
+.floor-stack[data-stack-owner="initial"] .stack-label{background:#536e53}
+.floor-stack[data-stack-owner="mine"] .stack-label{background:#9a6c22}
+body.playing .player-score{min-width:0;max-width:58%;flex-wrap:wrap;justify-content:flex-end;row-gap:1px}
+body.playing .player-score small{max-width:100%;font-size:9px;line-height:1.15;overflow-wrap:anywhere}
