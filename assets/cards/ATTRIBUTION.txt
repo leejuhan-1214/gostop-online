@@ -1,0 +1,15 @@
+Korean Hwatu SVG card set
+
+Individual SVG files: Spenĉjo
+Korean-style Hwatu master design: Marcus Richert
+Based in part on Hanafuda graphics by Louie Mantia, Jr.
+
+Source category: https://commons.wikimedia.org/wiki/Category:SVG_Hwatu
+Master overview: https://commons.wikimedia.org/wiki/File:Hwatu_overview.svg
+License: Creative Commons Attribution-ShareAlike 4.0 International
+License URL: https://creativecommons.org/licenses/by-sa/4.0/
+
+CC BY-SA 4.0 applies to the SVG files and adaptations of them. The SVG contents
+are distributed without modification. The local filenames were changed to the
+application's internal card IDs. Individual source description URLs and verified
+license metadata are recorded in verification.json.
