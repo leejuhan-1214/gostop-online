@@ -18,3 +18,35 @@
 }
 @media(max-width:350px){.badge{display:none}.join-row{flex-direction:column}.join-row button{min-height:48px}.player-score span{display:none}.hand-title span{font-size:9px}.card{height:72px}}
 @media(hover:none){.card:enabled:hover{transform:none}.card{touch-action:manipulation}}
+
+/* A dedicated, compact phone lobby and play table. */
+@media(max-width:600px){
+  body{background:#edf0e8}
+  .shell{background:#edf0e8;min-height:100dvh}
+  header{border-bottom:0;height:60px}
+  .brand-mark{width:36px;height:36px;font-size:22px}
+  .brand small,.badge{display:none}
+  .lobby{display:flex;flex-direction:column;gap:14px;padding:4px 0 32px}
+  .intro{position:relative;overflow:hidden;padding:24px;border-radius:18px;background:#164a3d;color:#fff}
+  .intro::after{content:'✿';position:absolute;right:22px;bottom:-25px;color:#ffffff12;font-size:150px;line-height:1;pointer-events:none}
+  .intro .eyebrow{color:#c9d8bd;font-size:9px}
+  .intro h1{position:relative;z-index:1;margin:13px 0 10px;font-size:36px;line-height:1.15;letter-spacing:-2px;color:#fff}
+  .intro h1 em{color:#e9b8a4}
+  .intro>p{position:relative;z-index:1;font-size:13px;line-height:1.6;color:#d4e1d2}
+  .paper-art{display:none}
+  .join-panel{align-self:stretch;padding:20px;border:0;border-radius:18px;background:#fffdf7;box-shadow:0 8px 25px #173c3410}
+  .panel-top{padding-bottom:12px}.join-panel h2{margin:17px 0 5px;font-size:21px}
+  .join-panel .muted{margin:0;font-size:13px}.join-panel>.primary{min-height:54px;margin-top:18px;border-radius:10px;font-size:16px}
+  .divider{margin:16px 0}.join-row{display:flex;flex-direction:row;gap:8px}.join-row input{width:0;min-height:50px;border-radius:9px}.join-row .secondary{min-height:50px;border-radius:9px}
+  .note{margin-top:16px}.waiting{padding:62px 0}.room-code{padding:16px 4px;border-radius:12px;background:#fffdf7;color:#164a3d}
+  .table{border-radius:16px;padding:15px 12px 20px}
+  .center{background:#245849;border:0;border-radius:12px;padding:12px;margin:12px -2px}
+  .notice{padding:10px;background:#235547;border-radius:8px}
+  .hand-title{display:flex;align-items:center;justify-content:space-between}.hand-title span{margin-left:5px}
+  .floor,.hand{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+  .card{height:82px;border-radius:7px}.hand .card{height:90px}
+  .card-month,.card-tag{font-size:11px}.card-art{font-size:28px}
+  .decisions button{border-radius:9px}
+  footer{border-color:#d5dfd4}
+}
+@media(max-width:350px){.intro{padding:20px}.intro h1{font-size:32px}.join-row{flex-direction:column}.join-row input{width:100%}.hand .card{height:80px}}
