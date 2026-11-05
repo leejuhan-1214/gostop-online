@@ -1,0 +1,18 @@
+(function(root){
+'use strict';
+const MONTHS=['송학','매화','벚꽃','흑싸리','난초','모란','홍싸리','공산','국화','단풍','오동','비'];
+// Each month has four uniquely identified cards. The final slot is always a plain card.
+const TYPES=[['광','띠','피','피'],['열','띠','피','피'],['광','띠','피','피'],['열','띠','피','피'],['열','띠','피','피'],['열','띠','피','피'],['열','띠','피','피'],['광','열','피','피'],['열','띠','피','피'],['열','띠','피','피'],['광','피','피','피'],['광','열','띠','피']];
+const cards=()=>TYPES.flatMap((ts,m)=>ts.map((type,i)=>({id:m*4+i,month:m+1,name:MONTHS[m],type})));
+function shuffle(a,rng=Math.random){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function score(p){const counts={광:0,열:0,띠:0,피:0};p.won.forEach(c=>counts[c.type]++);let n=counts.광===3?3:counts.광===4?4:counts.광>=5?15:0;n+=Math.max(0,counts.열-4)+Math.max(0,counts.띠-4)+Math.max(0,counts.피-9);return {total:n,counts};}
+function create(rng=Math.random){const d=shuffle(cards(),rng);return {hands:[d.splice(0,10),d.splice(0,10)],floor:d.splice(0,8),deck:d,players:[{won:[],go:0,threshold:7},{won:[],go:0,threshold:7}],turn:0,phase:'play',pending:null,log:'방장이 먼저 시작합니다.',winner:null};}
+function resolveCard(g,c,source){const matches=g.floor.filter(x=>x.month===c.month);if(matches.length===0){g.floor.push(c);return false;}if(matches.length>1){g.phase='choose';g.pending={card:c,source,options:matches.map(x=>x.id)};return true;}capture(g,c,matches[0].id);return false;}
+function capture(g,c,id){const i=g.floor.findIndex(x=>x.id===id);if(i<0)throw Error('바닥패를 찾을 수 없습니다.');const matched=g.floor.splice(i,1)[0];g.players[g.turn].won.push(c,matched);}
+function afterPlayed(g){if(g.deck.length){const c=g.deck.shift();g.log=`${c.month}월 뒤집기 · ${c.name}`;if(resolveCard(g,c,'draw'))return;}finishTurn(g);}
+function finishTurn(g){const p=g.players[g.turn],s=score(p).total;if(s>=p.threshold){g.phase='decision';g.log=`${s}점! 고 또는 스톱을 선택하세요.`;return;}advance(g);}
+function advance(g){if(!g.hands[0].length&&!g.hands[1].length){const a=score(g.players[0]).total,b=score(g.players[1]).total;g.phase='end';g.winner=a===b?null:a>b?0:1;g.log=a===b?'패가 모두 소진되어 무승부입니다.':'패가 모두 소진되어 높은 점수의 승리입니다.';return;}g.turn=1-g.turn;g.phase='play';g.pending=null;g.log=`${g.turn===0?'방장':'참가자'} 차례입니다.`;}
+function act(g,seat,a){if(!g||g.phase==='end'||seat!==g.turn||!a||typeof a.type!=='string')throw Error('지금은 행동할 수 없습니다.');if(a.type==='play'&&g.phase==='play'){const i=g.hands[seat].findIndex(c=>c.id===a.id);if(i<0)throw Error('손패를 찾을 수 없습니다.');const c=g.hands[seat].splice(i,1)[0];g.log=`${c.month}월 ${c.name} 패를 냈습니다.`;if(!resolveCard(g,c,'hand'))afterPlayed(g);return;}if(a.type==='choose'&&g.phase==='choose'){if(!g.pending.options.includes(a.id))throw Error('바닥패를 선택해 주세요.');const p=g.pending;g.pending=null;capture(g,p.card,a.id);if(p.source==='hand')afterPlayed(g);else finishTurn(g);return;}if(a.type==='decision'&&g.phase==='decision'&&['go','stop'].includes(a.choice)){if(a.choice==='stop'){g.phase='end';g.winner=seat;g.log=`${seat===0?'방장':'참가자'} 스톱! ${score(g.players[seat]).total}점으로 승리했습니다.`;}else{const p=g.players[seat];p.go++;p.threshold=score(p).total+1;advance(g);}return;}throw Error('올바르지 않은 행동입니다.');}
+function view(g,seat){return {hand:g.hands[seat],otherHandCount:g.hands[1-seat].length,floor:g.floor,deckCount:g.deck.length,players:g.players.map(p=>({won:p.won,go:p.go,score:score(p)})),turn:g.turn,phase:g.phase,pending:g.pending,log:g.log,winner:g.winner};}
+const api={cards,shuffle,score,create,act,view};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.GoStop=api;
+})(typeof window!=='undefined'?window:globalThis);
