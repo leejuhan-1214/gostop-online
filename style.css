@@ -213,3 +213,30 @@ body.playing .game-foot .text-btn{min-height:28px;padding:3px 0;font-size:11px}
   body:not(.playing) footer{display:none}
 }
 @media(max-height:520px) and (orientation:portrait) and (max-width:600px){body:not(.playing) .intro{display:none}body:not(.playing) header{flex-basis:44px;height:44px}body:not(.playing) footer{display:none}}
+
+.card-month{white-space:nowrap;max-width:calc(100% - 4px);overflow:hidden;font-size:8px}
+.turn-details{margin:2px 0;padding:4px 6px;border-radius:5px;background:#102a1ed9;color:#e6f1d7;font-size:11px;line-height:1.35}
+.turn-line{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#history-content p{padding:10px;border-radius:7px;background:#edf2e9;color:#244c39;overflow-wrap:anywhere}
+body.playing .turn-details{flex:0 0 auto;margin:2px 0;padding:3px 5px;font-size:10px;line-height:1.25}
+body.playing .card-month{font-size:clamp(6px,1.7vw,9px);max-width:calc(100% - 3px)}
+body.playing .game-foot{justify-content:flex-end}
+body.playing .game-foot>span{margin-right:auto}
+@media(max-height:500px){body.playing .turn-details{font-size:9px;line-height:1.1;padding:1px 4px}body.playing .game-foot .text-btn{font-size:10px}}
+
+/* Keep the familiar card table readable while still fitting the active game. */
+body.playing .game-head h2{font-size:19px}
+body.playing .player-strip b{font-size:13px}
+body.playing .player-score strong{font-size:18px}
+body.playing .won-summary{font-size:11px}
+body.playing .won{height:38px}
+body.playing .won-cards{max-height:34px;padding-right:22px}
+body.playing .won-cards img{width:22px;min-width:22px;height:34px}
+body.playing .card-month{font-size:clamp(8px,2.5vw,11px);background:#fffdf4ed}
+body.playing .card-tag{font-size:clamp(8px,2vw,10px);padding:2px 3px}
+body.playing .hand-title{font-size:12px}
+body.playing .hand{flex-basis:30vh;flex-basis:30dvh;max-height:220px;gap:4px}
+body.playing .game-foot>span{display:none}
+body.playing .game-foot{justify-content:flex-end;gap:18px}
+@media(min-width:761px){body.playing .hand{flex-basis:24vh;flex-basis:24dvh;max-height:180px}}
+@media(max-height:540px){body.playing .hand{flex-basis:25vh;flex-basis:25dvh}body.playing .game-head h2{font-size:15px}body.playing .player-score strong{font-size:15px}body.playing .won-summary{font-size:10px}body.playing .won{height:25px}body.playing .won-cards{max-height:21px;padding-right:14px}body.playing .won-cards img{width:14px;min-width:14px;height:21px}}

@@ -1,6 +1,6 @@
 (function(root){
 'use strict';
-const MONTHS=['송학','매화','벚꽃','흑싸리','난초','모란','홍싸리','공산','국화','단풍','오동','비'];
+const MONTHS=['송학','매화','벚꽃','흑싸리','난초','모란','홍싸리(적싸리)','공산','국화','단풍','오동','비'];
 const TYPES=[['광','띠','피','피'],['열','띠','피','피'],['광','띠','피','피'],['열','띠','피','피'],['열','띠','피','피'],['열','띠','피','피'],['열','띠','피','피'],['광','열','피','피'],['열','띠','피','피'],['열','띠','피','피'],['광','피','피','피'],['광','열','띠','피']];
 const DOUBLE_PI=new Set([41,47]);
 const cards=()=>TYPES.flatMap((ts,m)=>ts.map((type,i)=>({id:m*4+i,month:m+1,name:MONTHS[m],type})));
@@ -19,28 +19,33 @@ function create(rng=Math.random){
   let deck,hands,floor;
   for(let attempts=0;attempts<100;attempts++){
     deck=shuffle(cards(),rng);hands=[deck.splice(0,10),deck.splice(0,10)];floor=deck.splice(0,8);
-    if(![...hands,floor].some(zone=>MONTHS.some((_,i)=>zone.filter(c=>c.month===i+1).length===4)))break;
+    if(!MONTHS.some((_,i)=>floor.filter(c=>c.month===i+1).length===4))break;
   }
   const stacks={};for(let m=1;m<=12;m++)if(floor.filter(c=>c.month===m).length===3)stacks[m]=null;
-  return {rulesVersion:2,hands,floor,deck,players:[{won:[],go:0,threshold:7,shaken:[],bombed:[],passes:0,gukjinPi:false},{won:[],go:0,threshold:7,shaken:[],bombed:[],passes:0,gukjinPi:false}],turn:0,phase:'play',pending:null,stacks,turnContext:null,log:'방장이 먼저 시작합니다.',winner:null,result:null};
+  const game={rulesVersion:3,hands,floor,deck,players:[{won:[],go:0,threshold:7,shaken:[],bombed:[],passes:0,gukjinPi:false},{won:[],go:0,threshold:7,shaken:[],bombed:[],passes:0,gukjinPi:false}],turn:0,phase:'play',pending:null,stacks,turnContext:null,lastTurns:[],log:'방장이 먼저 시작합니다.',winner:null,result:null};
+  const chongtong=hands.map(hand=>MONTHS.findIndex((_,i)=>hand.filter(c=>c.month===i+1).length===4)+1);
+  if(chongtong[0]&&chongtong[1]){game.phase='end';game.log='양쪽 모두 총통! 무승부입니다.';}
+  else if(chongtong[0]||chongtong[1]){const winner=chongtong[0]?0:1;game.phase='end';game.winner=winner;game.result={base:7,goBonus:0,multipliers:[],total:7,reason:'총통'};game.log=`${chongtong[winner]}월 총통! 같은 월 네 장으로 7점 승리했습니다.`;}
+  return game;
 }
 function stackEvent(g,month){const owner=g.stacks[month];delete g.stacks[month];g.turnContext.events.push({name:owner===g.turn?'자뻑':'뻑 먹기',steal:owner===g.turn?2:1,stack:true});}
 function capture(g,c,ids){
+  const taken=ids.map(id=>g.floor.find(x=>x.id===id));if(new Set(ids).size!==ids.length||taken.some(x=>!x||x.month!==c.month))throw Error('같은 월의 바닥패만 가져올 수 있습니다.');
   if(ids.length===3)stackEvent(g,c.month);
-  const taken=[];for(const id of ids){const i=g.floor.findIndex(x=>x.id===id);if(i<0)throw Error('바닥패를 찾을 수 없습니다.');taken.push(g.floor.splice(i,1)[0]);}
-  g.players[g.turn].won.push(c,...taken);g.turnContext.captured+=1+ids.length;
+  for(const id of ids)g.floor.splice(g.floor.findIndex(x=>x.id===id),1);
+  g.players[g.turn].won.push(c,...taken);g.turnContext.captured+=1+ids.length;g.turnContext.captures.push({source:g.turnContext.drawn?.id===c.id?'draw':'hand',cards:[c,...taken]});
 }
 function stealPi(g,amount){
-  const opponent=g.players[1-g.turn],receiver=g.players[g.turn],other=opponent.won,mine=receiver.won;let stolen=0;
-  while(amount>0){let i=other.findIndex(c=>c.type==='피'&&piValue(c)===1);if(i<0)i=other.findIndex(c=>c.type==='피'||(c.id===32&&opponent.gukjinPi));if(i<0)break;const c=other.splice(i,1)[0],value=c.id===32?2:piValue(c);if(c.id===32){opponent.gukjinPi=false;receiver.gukjinPi=false;}mine.push(c);stolen++;amount-=value;}
+  const opponent=g.players[1-g.turn],receiver=g.players[g.turn],other=opponent.won,mine=receiver.won,stolen=[];
+  while(amount>0){let i=other.findIndex(c=>c.type==='피'&&piValue(c)===1);if(i<0)i=other.findIndex(c=>c.type==='피'||(c.id===32&&opponent.gukjinPi));if(i<0)break;const c=other.splice(i,1)[0],value=c.id===32?2:piValue(c);if(c.id===32){opponent.gukjinPi=false;receiver.gukjinPi=false;}mine.push(c);stolen.push(c);amount-=value;}
   return stolen;
 }
 function finishTurn(g){
   const ctx=g.turnContext,last=g.deck.length===0;
   if(!last&&ctx.captured&&g.floor.length===0)ctx.events.push({name:'싹쓸이',steal:1});
-  for(const event of ctx.events){if(!last||event.stack)event.stolen=stealPi(g,event.steal);}
+  for(const event of ctx.events){if(!last||event.stack){const taken=stealPi(g,event.steal);event.stolen=taken.length;if(taken.length)ctx.captures.push({source:'bonus',cards:taken});}}
   const eventText=ctx.events.map(e=>e.name+(e.stolen?` · 피 ${e.stolen}장 가져옴`:''));
-  g.log=eventText.length?eventText.join(' / '):ctx.log||'차례를 마쳤습니다.';g.turnContext=null;
+  g.log=eventText.length?eventText.join(' / '):ctx.log||'차례를 마쳤습니다.';g.lastTurns=(g.lastTurns||[]).concat({seat:g.turn,played:ctx.played,drawn:ctx.drawn,captures:ctx.captures,events:ctx.events.map(e=>e.name)}).slice(-2);g.turnContext=null;
   const p=g.players[g.turn],s=score(p).total;if(s>=p.threshold){g.phase='decision';g.log+=` · ${s}점! 고 또는 스톱을 선택하세요.`;return;}advance(g);
 }
 function advance(g){
@@ -49,6 +54,7 @@ function advance(g){
 }
 function drawCard(g,draw,playedWasUnmatched=false){
   if(!draw){finishTurn(g);return;}
+  g.turnContext.drawn=draw;
   const matches=g.floor.filter(x=>x.month===draw.month);
   if(matches.length===0){g.floor.push(draw);finishTurn(g);return;}
   if(matches.length===2){g.phase='choose';g.pending={card:draw,source:'draw',options:matches.map(x=>x.id)};return;}
@@ -58,15 +64,16 @@ function drawCard(g,draw,playedWasUnmatched=false){
 }
 function afterHand(g,c,selectedId){
   const matches=g.floor.filter(x=>x.month===c.month),draw=g.deck.shift()||null;
+  g.turnContext.drawn=draw;
   if(matches.length===3){capture(g,c,matches.map(x=>x.id));drawCard(g,draw);return;}
-  if(matches.length===2&&draw&&draw.month===c.month){capture(g,c,matches.map(x=>x.id));g.players[g.turn].won.push(draw);g.turnContext.captured++;g.turnContext.events.push({name:'따닥',steal:1});finishTurn(g);return;}
+  if(matches.length===2&&draw&&draw.month===c.month){capture(g,c,matches.map(x=>x.id));g.players[g.turn].won.push(draw);g.turnContext.captured++;g.turnContext.captures[g.turnContext.captures.length-1].cards.push(draw);g.turnContext.events.push({name:'따닥',steal:1});finishTurn(g);return;}
   if(matches.length===1&&draw&&draw.month===c.month){g.floor.push(c,draw);g.stacks[c.month]=g.turn;g.turnContext.events.push({name:'뻑! 세 장이 바닥에 쌓였습니다',steal:0});finishTurn(g);return;}
   if(matches.length){const target=matches.length===1?matches[0].id:selectedId;if(!matches.some(x=>x.id===target))throw Error('짝지을 바닥패를 선택하세요.');capture(g,c,[target]);drawCard(g,draw);return;}
   g.floor.push(c);drawCard(g,draw,!!draw&&draw.month===c.month);
 }
 function resultFor(g,seat){
   const winner=g.players[seat],loser=g.players[1-seat],a=score(winner),b=score(loser),multipliers=[];
-  const bonus=winner.go===1?1:winner.go===2?2:0;if(winner.go>=3)multipliers.push({name:`${winner.go}고`,factor:2**(winner.go-2)});
+  const bonus=winner.go;if(winner.go>=3)multipliers.push({name:`${winner.go}고`,factor:2**(winner.go-2)});
   for(const month of new Set([...winner.shaken,...winner.bombed]))multipliers.push({name:`${month}월 흔들기·폭탄`,factor:2});
   if(a.counts.광>=3&&b.counts.광===0)multipliers.push({name:'광박',factor:2});
   if(a.counts.피>=10&&b.counts.피>=1&&b.counts.피<=7)multipliers.push({name:'피박',factor:2});
@@ -84,13 +91,13 @@ function act(g,seat,a){
   }
   if(a.type==='bomb'&&g.phase==='play'){
     const p=g.players[seat],month=a.month,held=g.hands[seat].filter(c=>c.month===month),matches=g.floor.filter(c=>c.month===month);if(!Number.isInteger(month)||held.length!==3||matches.length!==1)throw Error('폭탄을 낼 수 없습니다.');
-    g.hands[seat]=g.hands[seat].filter(c=>c.month!==month);p.bombed.push(month);p.passes+=2;g.turnContext={captured:0,events:[{name:'폭탄',steal:1}],log:'폭탄!'};capture(g,held[0],[matches[0].id]);p.won.push(held[1],held[2]);g.turnContext.captured+=2;drawCard(g,g.deck.shift()||null);return;
+    g.hands[seat]=g.hands[seat].filter(c=>c.month!==month);p.bombed.push(month);p.passes+=2;g.turnContext={captured:0,events:[{name:'폭탄',steal:1}],log:'폭탄!',played:held,drawn:null,captures:[]};capture(g,held[0],[matches[0].id]);p.won.push(held[1],held[2]);g.turnContext.captured+=2;g.turnContext.captures[0].cards.push(held[1],held[2]);drawCard(g,g.deck.shift()||null);return;
   }
   if(a.type==='pass'&&g.phase==='play'){
-    const p=g.players[seat];if(p.passes<1)throw Error('뒤집기 기회가 없습니다.');p.passes--;g.turnContext={captured:0,events:[],log:'폭탄 뒤집기'};drawCard(g,g.deck.shift()||null);return;
+    const p=g.players[seat];if(p.passes<1)throw Error('뒤집기 기회가 없습니다.');p.passes--;g.turnContext={captured:0,events:[],log:'폭탄 뒤집기',played:[],drawn:null,captures:[]};drawCard(g,g.deck.shift()||null);return;
   }
   if(a.type==='play'&&g.phase==='play'){
-    const i=g.hands[seat].findIndex(c=>c.id===a.id);if(i<0)throw Error('손패를 찾을 수 없습니다.');const c=g.hands[seat].splice(i,1)[0];g.turnContext={captured:0,events:[],log:`${c.month}월 ${c.name} 패를 냈습니다.`};
+    const i=g.hands[seat].findIndex(c=>c.id===a.id);if(i<0)throw Error('손패를 찾을 수 없습니다.');const c=g.hands[seat].splice(i,1)[0];g.turnContext={captured:0,events:[],log:`${c.month}월 ${c.name} 패를 냈습니다.`,played:[c],drawn:null,captures:[]};
     const matches=g.floor.filter(x=>x.month===c.month);if(matches.length===2){g.phase='choose';g.pending={card:c,source:'hand',options:matches.map(x=>x.id)};return;}afterHand(g,c);return;
   }
   if(a.type==='choose'&&g.phase==='choose'){
@@ -102,6 +109,6 @@ function act(g,seat,a){
   }
   throw Error('올바르지 않은 행동입니다.');
 }
-function view(g,seat){return {hand:g.hands[seat],otherHandCount:g.hands[1-seat].length,floor:g.floor,stacks:g.stacks,deckCount:g.deck.length,players:g.players.map(p=>({won:p.won,go:p.go,score:score(p),shaken:p.shaken,bombed:p.bombed,passes:p.passes,gukjinPi:p.gukjinPi})),turn:g.turn,phase:g.phase,pending:g.pending,log:g.log,winner:g.winner,result:g.result};}
+function view(g,seat){const ctx=g.turnContext;return {hand:g.hands[seat],otherHandCount:g.hands[1-seat].length,floor:g.floor,stacks:g.stacks,deckCount:g.deck.length,players:g.players.map(p=>({won:p.won,go:p.go,score:score(p),shaken:p.shaken,bombed:p.bombed,passes:p.passes,gukjinPi:p.gukjinPi})),turn:g.turn,phase:g.phase,pending:g.pending,inTurn:ctx?{played:ctx.played,drawn:ctx.drawn,captures:ctx.captures}:null,lastTurns:g.lastTurns||[],log:g.log,winner:g.winner,result:g.result};}
 const api={cards,shuffle,score,create,act,view,piValue};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.GoStop=api;
 })(typeof window!=='undefined'?window:globalThis);
