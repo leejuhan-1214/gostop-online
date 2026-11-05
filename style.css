@@ -67,7 +67,7 @@ body{background:#242019}
 .deck-card{position:relative;color:#f9e8bd;border:3px solid #e5ca8e;border-radius:5px;background:repeating-linear-gradient(45deg,#9c281f 0 5px,#a93427 5px 10px);box-shadow:2px 3px 0 #ede1c4,4px 5px 0 #a33429,6px 7px 0 #eee0c0;text-shadow:0 1px 2px #4c140f}
 .section-label{color:#e5dfb1}.section-label span{color:#b4c8ae}
 .card,.card.bright{position:relative;display:block;flex:0 0 70px;width:70px;height:auto;aspect-ratio:103/168;padding:0;overflow:hidden;border:0;border-radius:5px;background:#fffdf6;box-shadow:0 3px 0 #a32922,0 5px 8px #00170db3;isolation:isolate}
-.card-image{display:block;width:100%;height:100%;object-fit:fill;pointer-events:none}
+.card-image{display:block;width:100%;height:auto;aspect-ratio:103.2/168.2;object-fit:contain;pointer-events:none}
 .card-month,.card-tag{z-index:1;margin:0;padding:2px 3px;border-radius:3px;background:#fdf6e8e8;color:#3c3226;font-family:sans-serif;font-size:9px;font-weight:800;line-height:1}
 .card-month{top:3px;left:3px}.card-tag{right:3px;bottom:3px;color:#a12a20}
 .card:enabled{outline:2px solid #f6d56c;outline-offset:2px}
@@ -145,12 +145,13 @@ body.playing .deck-card{width:28px;height:40px;font-size:16px;box-shadow:2px 2px
 body.playing .deck-wrap small{white-space:nowrap;font-size:8px}
 body.playing .floor-wrap{display:flex;flex:1 1 0;flex-direction:column;height:100%;min-width:0;min-height:0;overflow:hidden}
 body.playing .section-label{flex:0 0 auto;margin:0 0 2px;font-size:9px}
-body.playing .floor,body.playing .hand{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));grid-auto-rows:minmax(0,1fr);align-items:center;justify-items:center;gap:3px;min-width:0;min-height:0;overflow:hidden;padding:2px}
+body.playing .floor,body.playing .hand{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));grid-auto-rows:minmax(0,1fr);align-items:center;justify-items:center;gap:4px;min-width:0;min-height:0;overflow:hidden;padding:4px}
 body.playing .floor{flex:1 1 0;width:100%}
 body.playing .hand{flex:0 1 25vh;flex:0 1 25dvh;max-height:190px}
-body.playing .floor>.card,body.playing .hand>.card{width:auto;height:100%;max-width:100%;max-height:100%;min-height:0;aspect-ratio:103/168;border-radius:3px}
-body.playing .floor-stack{width:auto;height:100%;max-width:100%;aspect-ratio:103/168;flex:none}
-body.playing .floor-stack .card{width:calc(100% - 5px);height:auto;max-height:none}
+body.playing .floor>.card,body.playing .hand>.card,body.playing .floor-stack .card{width:var(--card-width,70px);height:auto;max-width:none;max-height:none;min-height:0;aspect-ratio:103.2/168.2;border-radius:3px}
+body.playing .floor-stack{width:calc(var(--card-width,70px) + 6px);height:calc(var(--card-width,70px) * 168.2 / 103.2 + 6px);max-width:none;aspect-ratio:auto;flex:none}
+body.playing .floor-stack .card:nth-child(1){transform:translate(5px,4px)}
+body.playing .floor-stack .card:nth-child(2){transform:translate(2px,2px)}
 body.playing .stack-label{bottom:0;font-size:8px;padding:2px 0}
 body.playing .card-month,body.playing .card-tag{font-size:8px;padding:1px 2px}
 body.playing .notice{flex:0 0 auto;min-height:0;max-height:2.8em;overflow:hidden;margin:3px 0;padding:4px 6px;font-size:11px;line-height:1.25}
