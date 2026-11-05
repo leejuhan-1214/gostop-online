@@ -90,3 +90,20 @@ body{background:#242019}
   .hand{min-height:95px}.notice{font-size:12px;margin:10px 0}.won{font-size:10px}
 }
 @media(max-width:350px){.floor,.hand{grid-template-columns:repeat(4,minmax(0,1fr))}.card,.card.bright,.hand .card{height:auto}}
+
+/* Captured cards and three-card stacks stay visible during play. */
+.won{display:block;width:100%;max-width:100%;padding:7px 9px;overflow:hidden}
+.won-summary{display:block;margin-bottom:5px}
+.won-cards{display:flex;align-items:center;min-height:5px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;gap:3px}
+.won-cards img{display:block;flex:0 0 28px;width:28px;height:46px;object-fit:fill;border-radius:2px;background:white}
+.floor-stack{position:relative;flex:0 0 78px;width:78px;aspect-ratio:103/168;isolation:isolate}
+.floor-stack .card{position:absolute;width:calc(100% - 8px);height:auto;top:0;left:0}
+.floor-stack .card:nth-child(1){transform:translate(8px,5px)}
+.floor-stack .card:nth-child(2){transform:translate(4px,3px)}
+.floor-stack .card:nth-child(3){transform:translate(0,0)}
+.stack-label{position:absolute;z-index:2;bottom:-5px;left:0;right:0;padding:3px 0;border-radius:4px;background:#a43527;color:white;text-align:center;font-size:10px;font-weight:bold;white-space:nowrap}
+.special-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.special-actions button{min-height:44px;padding:8px 14px;border:1px solid #e5c77b;border-radius:7px;background:#604b27;color:#fff1ca;font-weight:bold}
+.special-actions button:disabled{opacity:.5}
+.result-detail{padding:8px 12px;text-align:center;color:#ffdf93;font-size:13px;line-height:1.5}
+@media(max-width:600px){.floor-stack{width:100%;min-width:0;aspect-ratio:103/168}.floor-stack .card{width:calc(100% - 5px)}.floor-stack .card:nth-child(1){transform:translate(5px,4px)}.floor-stack .card:nth-child(2){transform:translate(2px,2px)}.stack-label{font-size:8px}.won-cards img{width:25px;height:41px;flex-basis:25px}.special-actions{gap:6px}.special-actions button{flex:1;min-width:105px;font-size:12px}}
