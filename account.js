@@ -1,8 +1,9 @@
 (()=>{'use strict';
-const $=id=>document.getElementById(id),API='https://flower-gostop-relay.magic-shark-7297.chatgpt.site',KEY='flower-gostop-account-v1';
+const $=id=>document.getElementById(id),API='https://flower-gostop-relay.magic-shark-7297.chatgpt.site',KEY='flower-gostop-account-v1',LOAN_KEY=KEY+'-loan-pending';
 const listeners=new Set(),number=new Intl.NumberFormat('ko-KR');
-let token='',profile=null,authBusy=false,profileRequest=0,refreshRequest=null,refreshToken='',offline=false,profileIsOwn=false;
+let token='',profile=null,authBusy=false,profileRequest=0,refreshRequest=null,refreshToken='',offline=false,profileIsOwn=false,loanBusy=false,loanAttempt=null;
 try{token=localStorage.getItem(KEY)||'';}catch{}
+try{const saved=JSON.parse(localStorage.getItem(LOAN_KEY)||'null');if(saved&&typeof saved.userId==='string'&&['borrow','repay'].includes(saved.kind)&&Number.isSafeInteger(saved.amount)&&saved.amount>0&&typeof saved.requestId==='string')loanAttempt=saved;}catch{}
 const text=(id,value)=>{$(id).textContent=value;};
 const show=(id,visible)=>$(id).classList.toggle('hidden',!visible);
 const format=value=>Number.isFinite(value)?number.format(value):'—';
@@ -121,6 +122,7 @@ function renderProfile(p,own){
   text('profile-nickname',p.nickname||'프로필');
   text('profile-username',own&&p.username?`@${p.username}`:'');
   text('profile-coins',format(p.coins));text('profile-wins',format(p.wins));text('profile-losses',format(p.losses));
+  text('profile-games',format(p.games??((p.wins||0)+(p.losses||0)+(p.draws||0))));text('profile-draws',format(p.draws||0));
   const activeRoom=own&&p.activeRoom;
   text('profile-active-room',activeRoom?`진행 중인 방 ${activeRoom.code} · 게임 화면에서 이어서 플레이하세요.`:'');show('profile-active-room',Boolean(activeRoom));
   const title=titleOf(p);text('profile-title',title);show('profile-title',Boolean(title));
@@ -128,9 +130,55 @@ function renderProfile(p,own){
   text('profile-debt-total',`${format(total)}코인`);
   const rows=debt.map(item=>{const row=document.createElement('li'),name=document.createElement('span'),amount=document.createElement('strong');name.textContent=item.creditorNickname;amount.textContent=`${format(item.amount)}코인`;row.append(name,amount);return row;});
   $('profile-debts').replaceChildren(...rows);
-  text('profile-debt-help',debt.length>1?`외 ${debt.length-1}명에게도 빚이 있어요. 이기면 오래된 빚부터 갚고, 모두 갚으면 칭호가 사라집니다.`:'이기면 얻은 코인으로 빚을 먼저 갚습니다. 모두 갚으면 칭호가 사라집니다.');
+  text('profile-debt-help',debt.length>1?`외 ${debt.length-1}명에게도 빚이 있어요. 승리하거나 코인을 빌리면 오래된 빚부터 갚고, 모두 갚으면 칭호가 사라집니다.`:'승리하거나 코인을 빌리면 상대에게 진 빚을 먼저 갚습니다. 모두 갚으면 칭호가 사라집니다.');
+  renderLoan(p,own);
   const recent=recentResultText(p);text('profile-recent',recent);show('profile-recent',Boolean(recent));
   show('account-logout',own);show('profile-body',true);
+}
+function saveLoanAttempt(){try{if(loanAttempt)localStorage.setItem(LOAN_KEY,JSON.stringify(loanAttempt));else localStorage.removeItem(LOAN_KEY);}catch{}}
+function loanOf(p){const loan=p?.loan;return loan&&['principal','interest','total','available'].every(key=>Number.isFinite(loan[key]))?loan:null;}
+function renderLoan(p,own){
+  const loan=loanOf(p),visible=Boolean(own&&loan);show('profile-loan-section',visible);if(!visible)return;
+  for(const key of ['principal','interest','total','available'])text('profile-loan-'+key,`${format(loan[key])}코인`);
+  const pending=loanAttempt?.userId===p.id?loanAttempt:null;
+  if(pending)$('profile-loan-amount').value=String(pending.amount);
+  const amount=Number($('profile-loan-amount').value),valid=Number.isSafeInteger(amount)&&amount>0,interest=valid?Math.ceil(amount/10):0,repayable=Math.min(loan.total,Math.max(0,p.coins));
+  text('profile-loan-preview',valid?`${format(amount)}코인 대출 시 이자 ${format(interest)}코인 · 이번 대출 상환액 ${format(amount+interest)}코인`:'1코인 이상의 정수 금액을 입력해 주세요.');
+  text('profile-loan-help',`지금 상환할 수 있는 금액 ${format(repayable)}코인 · 이자부터 갚고 남은 금액으로 원금을 갚습니다.${debtTotal(p)>0?' 빌린 코인은 상대에게 진 빚부터 갚습니다.':''}`);
+  $('profile-loan-amount').disabled=loanBusy||Boolean(pending);
+  $('profile-loan-borrow').disabled=loanBusy||(!pending&&(!valid||amount>loan.available||amount>3000))||Boolean(pending&&pending.kind!=='borrow');
+  $('profile-loan-repay').disabled=loanBusy||(!pending&&(!valid||amount>repayable))||Boolean(pending&&pending.kind!=='repay');
+  $('profile-loan-repay-all').disabled=loanBusy||Boolean(pending)||loan.total<1||loan.total>Math.max(0,p.coins);
+  if(pending&&!loanBusy)text('profile-loan-status',`이전 ${pending.kind==='borrow'?'대출':'상환'} 결과를 확인해야 합니다. 같은 버튼을 다시 누르면 중복 처리 없이 확인합니다.`);
+}
+async function submitLoan(kind,all=false){
+  if(loanBusy||!requireLogin())return;
+  const loan=loanOf(profile);if(!loan)return;
+  const amount=all?loan.total:Number($('profile-loan-amount').value);
+  if(!Number.isSafeInteger(amount)||amount<1){text('profile-loan-status','1코인 이상의 정수 금액을 입력해 주세요.');return;}
+  let operation=loanAttempt?.userId===profile.id?loanAttempt:null;
+  if(operation&&(operation.kind!==kind||operation.amount!==amount)){text('profile-loan-status','이전 요청과 같은 금액으로 먼저 결과를 확인해 주세요.');return;}
+  if(!operation){
+    if(kind==='borrow'&&(amount>loan.available||amount>3000)){text('profile-loan-status','남은 원금 한도 안에서 대출 금액을 입력해 주세요.');return;}
+    if(kind==='repay'&&amount>Math.min(loan.total,Math.max(0,profile.coins))){text('profile-loan-status','남은 대출액과 보유 코인 안에서 상환 금액을 입력해 주세요.');return;}
+    operation={userId:profile.id,kind,amount,requestId:crypto.randomUUID()};loanAttempt=operation;saveLoanAttempt();
+  }
+  const current=token;loanBusy=true;renderLoan(profile,true);text('profile-loan-status',kind==='borrow'?'대출을 처리하고 있습니다...':'상환을 처리하고 있습니다...');
+  try{
+    const result=await request('/loans/'+kind,{data:{amount,requestId:operation.requestId}});
+    if(current!==token)return;
+    if(!Number.isFinite(result.profile?.coins)||!loanOf(result.profile))throw new Error('대출 결과를 확인하지 못했습니다. 같은 버튼으로 다시 확인해 주세요.');
+    if(loanAttempt===operation){loanAttempt=null;saveLoanAttempt();}
+    update(result.profile);
+    text('profile-loan-status',kind==='borrow'?`${format(amount)}코인을 빌렸습니다. 이자 ${format(Math.ceil(amount/10))}코인이 한 번 추가됐습니다.`:`${format(amount)}코인을 상환했습니다.`);
+  }catch(error){
+    if(current!==token)return;
+    if(error.status>=400&&error.status<500){
+      if(loanAttempt===operation){loanAttempt=null;saveLoanAttempt();}
+      if(error.status===409)await refresh().catch(()=>{});
+    }
+    text('profile-loan-status',error.message||'대출 요청을 확인하지 못했습니다. 같은 버튼으로 다시 확인해 주세요.');
+  }finally{loanBusy=false;if(profile&&profileIsOwn)renderLoan(profile,true);}
 }
 async function openProfile(id){
   if(!requireLogin())return;
@@ -169,6 +217,10 @@ $('account-game-open').onclick=()=>(token&&profile)?openProfile():openAuth();
 $('auth-close').onclick=()=>$('auth-dialog').close();$('profile-close').onclick=()=>{profileRequest++;$('profile-dialog').close();};
 $('auth-dialog').addEventListener('close',()=>{$('login-password').value='';$('register-password').value='';});
 $('account-logout').onclick=logout;
+$('profile-loan-amount').addEventListener('input',()=>{if(profile&&profileIsOwn){text('profile-loan-status','');renderLoan(profile,true);}});
+$('profile-loan-borrow').onclick=()=>submitLoan('borrow');
+$('profile-loan-repay').onclick=()=>submitLoan('repay');
+$('profile-loan-repay-all').onclick=()=>submitLoan('repay',true);
 window.addEventListener('storage',event=>{
   if(event.key!==KEY)return;
   token=event.newValue||'';profile=null;offline=false;profileRequest++;renderAccount();notify();
