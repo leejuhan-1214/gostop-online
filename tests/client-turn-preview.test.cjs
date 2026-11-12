@@ -41,7 +41,7 @@ function makeClient(initialView=makeView(),seat=0){
     return {ok:true,json:async()=>data};
   };
   vm.runInNewContext(source,{
-    document:{body,getElementById:get,createElement:()=>element()},fetch,AbortController,navigator:{},console,
+    document:{body,getElementById:get,createElement:()=>element()},fetch,AbortController,navigator:{},console,confirm:()=>true,
     setTimeout(fn,ms){const id=++timerId;timers.set(id,{fn,ms});return id;},
     clearTimeout:id=>timers.delete(id),
     sessionStorage:{getItem:()=>JSON.stringify({code:'ABC234',token:'test-token',seat,mode:'bot'}),setItem(){},removeItem(){}}
@@ -110,7 +110,7 @@ test('leaving cancels a preview and its stale callback cannot alter a new game p
   const firstAction=client.get('hand').children[0].onclick();await tick();
   client.replyAction(response());await tick();
   const oldCallback=client.timer(900)[1].fn;
-  client.get('leave').onclick();await firstAction;await tick();
+  await client.get('leave').onclick();await firstAction;await tick();
   assert.equal(client.body.classList.contains('playing'),false);
   assert.equal(client.timer(900),undefined);
   assert.equal(client.get('lobby').classList.contains('hidden'),false);

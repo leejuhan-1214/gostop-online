@@ -1,0 +1,36 @@
+.account-strip{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:5px 10px;margin:14px 0 8px;padding:9px 10px;border:1px solid #d7d6c3;border-radius:8px;background:#f2eddf}
+.account-button{border:1px solid #bcc9b7;border-radius:7px;background:#fffdf6;color:#244f3b;padding:7px 10px;font-size:12px;font-weight:700;line-height:1.3;min-height:32px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.account-button:hover{background:#e6edde}.account-button:focus-visible,.account-tabs button:focus-visible{outline:2px solid #b97936;outline-offset:2px}
+.account-summary{min-width:0;font-size:11px;color:#687156;overflow-wrap:anywhere;line-height:1.4}
+.account-bot-hint{margin:5px 0 0;font-size:11px;line-height:1.4;color:#9c4b33}
+.game-head-actions{display:flex;align-items:center;gap:7px;min-width:0}
+.player-profile-name{display:block;max-width:clamp(88px,22vw,160px);min-width:0;margin:0;padding:0;border:0;border-radius:2px;background:none;color:inherit;font:inherit;font-size:13px;font-weight:700;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.player-profile-name:enabled:hover{text-decoration:underline;text-underline-offset:3px}.player-profile-name:focus-visible{outline:2px solid #e9d190;outline-offset:3px}.player-profile-name:disabled{opacity:1}
+.account-game-button{display:flex;align-items:center;gap:6px;max-width:185px;min-height:30px;padding:5px 9px;font-size:11px}
+.account-game-button strong{color:#866116;font-size:12px;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis}
+.account-dialog{max-width:430px;max-height:calc(100dvh - 24px);overflow:auto;border:1px solid #d9d5bd;border-radius:14px;box-shadow:0 20px 80px #092c2a50}
+.account-dialog .dialog-inner{padding:26px}.account-dialog .close{top:10px;right:10px;min-width:36px;min-height:36px}
+.account-dialog h2{margin:8px 0 12px;font-size:25px}.account-dialog h3{margin:14px 0 8px;font-size:15px}
+.account-dialog p{font-size:12px;line-height:1.6;margin:9px 0}
+.account-tabs{display:flex;gap:5px;margin:14px 0;border-bottom:1px solid #d9dfd1;padding-bottom:8px}
+.account-tabs button{flex:1;border:0;border-radius:6px;background:#e9eddf;color:#60745d;padding:9px;font-weight:700;font-size:13px}
+.account-tabs button[aria-selected="true"]{background:#244f3b;color:white}
+.account-form{display:grid;gap:7px}.account-form label{font-size:12px;margin-top:4px}
+.account-form input{display:block;width:100%;padding:10px 12px;min-height:43px;border-radius:6px;letter-spacing:0;font-size:16px}
+.account-form .field-hint{margin:0;font-size:10px;color:#778170}
+.account-form .primary{margin-top:7px;border-radius:6px;min-height:43px;padding:10px;font-size:14px}
+.account-form .primary:disabled,.account-tabs button:disabled{opacity:.55;cursor:wait}
+.account-dialog .status{min-height:0;margin:10px 0 0;font-size:12px;overflow-wrap:anywhere}
+.account-disclaimer{color:#7b806f!important;font-size:10px!important}
+.profile-username{font-size:11px;color:#7c8a76;overflow-wrap:anywhere}.profile-nickname{overflow-wrap:anywhere;padding-right:18px}
+.profile-title{display:inline-block;max-width:100%;margin:8px 0;padding:5px 9px;border:1px solid #d7a58e;border-radius:6px;background:#f4e2d8;color:#984e33;font-size:13px;font-weight:700;overflow-wrap:anywhere}
+.profile-balance{margin:12px 0;padding:14px;border:1px solid #d8cb9d;border-radius:9px;background:#f2ebd5;color:#685122}
+.profile-balance>span{display:block;font-size:11px;margin-bottom:5px}.profile-balance strong{font-size:28px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.profile-balance small{margin-left:5px;font-size:13px}
+.profile-record{display:flex;gap:15px;color:#55704e;font-size:12px}.profile-record b{color:#244f3b;font-variant-numeric:tabular-nums}
+.profile-debt-heading{display:flex;justify-content:space-between;align-items:center;gap:8px}.profile-debt-heading strong{font-size:13px;color:#9c4b33}
+.profile-debts{list-style:none;margin:0;padding:0;border-top:1px solid #e0d9c4}.profile-debts li{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #e0d9c4;font-size:12px}.profile-debts li span{overflow-wrap:anywhere;min-width:0}.profile-debts strong{white-space:nowrap;font-variant-numeric:tabular-nums;color:#84553f}
+.profile-recent{padding:8px 10px;border-radius:6px;background:#e8eedf;color:#365b38!important;overflow-wrap:anywhere}
+.account-logout{display:block;margin:16px 0 0;border:1px solid #c7cebc;border-radius:6px;padding:8px 12px;background:transparent;color:#667359;font-size:12px}
+@media(max-width:600px){.account-strip{margin:8px 0 5px;padding:6px 8px;gap:4px 8px}.account-button{font-size:11px;min-height:30px;padding:6px 8px}.account-summary{font-size:10px}.account-game-button{max-width:130px;gap:3px;padding:5px 7px}.account-game-button strong{font-size:11px}.account-game-button.signed-in #account-game-name{display:none}.game-head-actions{gap:5px}.account-dialog .dialog-inner{padding:22px 18px}.account-dialog h2{font-size:23px}.account-bot-hint{font-size:10px}}
+@media(max-width:600px) and (max-height:900px){body:not(.playing) .account-strip{margin:5px 0 3px;padding:4px 6px}body:not(.playing) .account-summary{font-size:9px}body:not(.playing) .account-button{min-height:28px;padding:4px 7px}}
+@media(max-height:540px){.account-dialog .dialog-inner{padding:18px}.account-dialog h2{font-size:21px;margin:5px 0 8px}.account-tabs{margin:8px 0}.account-form{gap:4px}.account-form input{min-height:36px;padding:7px 10px}.account-disclaimer{margin-bottom:0!important}.account-game-button{padding:4px 6px}}
