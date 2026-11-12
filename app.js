@@ -2,6 +2,7 @@
 const $=id=>document.getElementById(id),API='https://flower-gostop-relay.magic-shark-7297.chatgpt.site',KEY='flower-gostop-session-v1',NAMES=['송학','매화','벚꽃','흑싸리','난초','모란','적싸리','공산','국화','단풍','오동','비'];
 const account=globalThis.FlowerAccount;
 const presentation=globalThis.FlowerPresentation;
+const BOT_HINTS={easy:'쉬운 연습 상대 · 승리 보상 0.5배 (소수점 버림)',normal:'눈앞의 먹을 패와 점수를 챙깁니다 · 승리 보상 1배',hard:'족보 완성과 상대의 득점까지 계산합니다 · 승리 보상 2배'};
 let session=null,lastView=null,revision=-1,timer=null,generation=0,busy=false,offline=false,previewing=false,previewTimer=null,previewResolve=null,entering=false,leaving=false,playerProfiles=[];
 let roundMatchId=null,presentedMatchId=null,settlement=null,rematchState=null,receivedRevision=-1,visualSequence=0,animationQueue=Promise.resolve(),animationPending=0,animating=false;
 function cancelPresentation(){presentation?.cancel();presentation?.hideResult();roundMatchId=null;presentedMatchId=null;settlement=null;rematchState=null;receivedRevision=-1;visualSequence=0;animationQueue=Promise.resolve();animationPending=0;animating=false;}
@@ -163,6 +164,8 @@ if(typeof ResizeObserver==='function'){
   const observer=new ResizeObserver(fitCards);
   observer.observe($('floor'));observer.observe($('hand'));
 }
+function updateBotHint(){const hint=$('bot-level-hint');if(hint)hint.textContent=BOT_HINTS[$('bot-difficulty').value]||BOT_HINTS.normal;}
+$('bot-difficulty').onchange=updateBotHint;updateBotHint();
 $('bot').onclick=()=>{const difficulty=$('bot-difficulty').value;reset();enter('/bot',{difficulty});};
 $('bot-rematch').onclick=async()=>{const difficulty=session?.difficulty||'normal';if(await leaveRoom())enter('/bot',{difficulty});};
 $('host').onclick=()=>{reset();enter('/rooms',{});};

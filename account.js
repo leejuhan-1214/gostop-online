@@ -15,7 +15,7 @@ function titleOf(p){const debt=debtOf(p);if(debtTotal(p)<=0)return '';return typ
 function renderAccount(){
   const signedIn=Boolean(token&&profile),coins=signedIn?`${format(profile.coins)}코인`:'';
   text('account-open',signedIn?`${profile.nickname} · ${coins}`:token?'계정 다시 확인':'로그인 · 회원가입');
-  text('account-lobby-summary',signedIn?(offline?'코인 정보를 다시 확인해 주세요.':titleOf(profile)||'1점 = 1코인 · 내 프로필 보기'):'처음 가입하면 1,000코인');
+  text('account-lobby-summary',signedIn?(offline?'코인 정보를 다시 확인해 주세요.':titleOf(profile)||'코인과 전적 · 내 프로필 보기'):'처음 가입하면 1,000코인');
   text('account-game-name',signedIn?'내 프로필':'로그인');
   text('account-game-coins',signedIn?coins:'');
   $('account-game-open').classList.toggle('signed-in',signedIn);

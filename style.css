@@ -113,6 +113,8 @@ body{background:#242019}
 .difficulty-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:20px;color:#425b4a}
 .difficulty-row label{font-size:13px}.difficulty-row select{min-height:44px;min-width:112px;padding:8px 12px;border:1px solid #c4d0bf;border-radius:8px;background:#fffdf7;color:#173c34;font:inherit;font-size:16px}
 .difficulty-row+.bot-button{margin-top:10px}
+.bot-level-hint{margin:7px 0 0;color:#66776c;font-size:12px;line-height:1.5;overflow-wrap:anywhere}.bot-level-hint+.bot-button{margin-top:10px}
+.difficulty-row label{flex-shrink:0}.difficulty-row select{flex:0 1 220px;min-width:0}
 
 /* Keep the active game inside the visible viewport; the rules dialog remains scrollable. */
 body.playing{overflow:hidden}

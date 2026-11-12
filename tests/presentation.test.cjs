@@ -22,6 +22,7 @@ function endData({matchId='first',seat=0,winner=0,score=28,delta=28,mode='online
 test('results show Korean win/loss/draw, final score and actual settled coins including bot loss caps',()=>{
   const c=client();assert.equal(c.body.children.length,0);
   c.api.showResult(endData());assert.equal(c.get('fp-result-heading').textContent,'승리!');assert.equal(c.get('fp-result-score').textContent,'28점');assert.equal(c.get('fp-result-delta').textContent,'+28코인');assert.equal(c.get('fp-result').open,true);
+  for(const reward of [14,28,56]){c.api.showResult(endData({matchId:'reward-'+reward,mode:'bot',delta:reward}));assert.equal(c.get('fp-result-score').textContent,'28점');assert.equal(c.get('fp-result-delta').textContent,`+${reward}코인`);assert.match(c.byClass('fp-result-details')[0].textContent,new RegExp(`28점 → ${reward}코인`));}
   c.api.showResult(endData({matchId:'capped',winner:1,score:40,delta:-3,mode:'bot'}));
   assert.equal(c.get('fp-result-heading').textContent,'패배');assert.equal(c.get('fp-result-score').textContent,'40점');assert.equal(c.get('fp-result-delta').textContent,'-3코인');assert.match(c.byClass('fp-result-details')[0].textContent,/가진 코인까지만/);
   c.api.showResult(endData({matchId:'draw',winner:null,score:0,delta:0}));assert.equal(c.get('fp-result-heading').textContent,'무승부');assert.equal(c.get('fp-result-delta').textContent,'0코인');
