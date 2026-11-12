@@ -1,5 +1,6 @@
 (()=>{'use strict';
 const MONTHS=['송학','매화','벚꽃','흑싸리','난초','모란','적싸리','공산','국화','단풍','오동','비'];
+const PLAYBACK_TIME_SCALE=2.5;
 const format=value=>Number.isFinite(value)?new Intl.NumberFormat('ko-KR').format(value):'—';
 let ui=null,epoch=0,resultData=null,resultKey='',rematchState={},rematchHandler=null,leaveHandler=null,rematchPending=false,leavePending=false;
 const waits=new Map(),shownResults=new Set();
@@ -32,7 +33,7 @@ function cardsInto(target,cards){const nodes=(cards||[]).map(card=>cardNode(card
 function reducedMotion(){return typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;}
 function wait(ms,run){
   if(run!==epoch)return Promise.resolve(false);
-  const duration=reducedMotion()?Math.min(ms,200):ms;
+  const duration=(reducedMotion()?Math.min(ms,200):ms)*PLAYBACK_TIME_SCALE;
   return new Promise(resolve=>{const timer=setTimeout(()=>{waits.delete(timer);resolve(run===epoch);},duration);waits.set(timer,resolve);});
 }
 function stopStage(){epoch++;for(const [timer,resolve] of waits){clearTimeout(timer);resolve(false);}waits.clear();if(ui)ui.stage.hidden=true;}

@@ -50,15 +50,15 @@ test('a delayed leave callback cannot close a newer match result',async()=>{
 test('an opponent turn shows played and drawn cards plus named events without a capture popup',async()=>{
   const c=client(),promise=c.api.playTurns([{id:1,seat:1,played:[cards[4]],drawn:cards[12],captures:[{source:'hand',cards:[cards[4],cards[5]]}],events:['따닥']}],0,profiles);
   assert.equal(c.get('fp-stage').attributes['data-step'],'played');assert.equal(c.byClass('fp-stage-title')[0].textContent,'둘째사람');assert.equal(c.get('fp-stage').attributes['data-self'],'false');
-  assert.equal(c.all().filter(el=>el.tagName==='img').length,1);assert.equal([...c.timers.values()][0].ms,500);
-  await c.next();assert.equal(c.get('fp-stage').attributes['data-step'],'drawn');assert(c.all().some(el=>el.src==='assets/cards/m04-01.svg'));
-  await c.next();assert.equal(c.get('fp-stage').attributes['data-step'],'event');assert.match(c.byClass('fp-stage-note')[0].textContent,/따닥/);assert.equal(c.byClass('fp-captured-cards').length,0);assert.equal(c.all().filter(el=>el.tagName==='img').length,2);assert.doesNotMatch(c.get('fp-stage').textContent,/가져온 패|장 획득/);
+  assert.equal(c.all().filter(el=>el.tagName==='img').length,1);assert.equal([...c.timers.values()][0].ms,1250);
+  await c.next();assert.equal([...c.timers.values()][0].ms,1250);assert.equal(c.get('fp-stage').attributes['data-step'],'drawn');assert(c.all().some(el=>el.src==='assets/cards/m04-01.svg'));
+  await c.next();assert.equal([...c.timers.values()][0].ms,1625);assert.equal(c.get('fp-stage').attributes['data-step'],'event');assert.match(c.byClass('fp-stage-note')[0].textContent,/따닥/);assert.equal(c.byClass('fp-captured-cards').length,0);assert.equal(c.all().filter(el=>el.tagName==='img').length,2);assert.doesNotMatch(c.get('fp-stage').textContent,/가져온 패|장 획득/);
   await c.next();await promise;assert.equal(c.get('fp-stage').hidden,true);
 });
 test('capture-only and empty records produce no popup or wait while played cards remain visible',async()=>{
   const c=client();let promise=c.api.playTurns([{id:1,seat:0,played:[],drawn:null,captures:[{source:'draw',cards:[cards[4],cards[5]]}],events:[]}],0,profiles);
   await promise;assert.equal(c.get('fp-stage').hidden,true);assert.equal(c.timers.size,0);assert.equal(c.byClass('fp-capture-area').length,0);
-  promise=c.api.playTurns([{id:2,seat:0,played:[cards[0]],drawn:null,captures:[],events:[]}],0,profiles);assert.equal(c.byClass('fp-turn-columns')[0].children.length,1);assert.equal([...c.timers.values()][0].ms,500);await c.drain();await promise;
+  promise=c.api.playTurns([{id:2,seat:0,played:[cards[0]],drawn:null,captures:[],events:[]}],0,profiles);assert.equal(c.byClass('fp-turn-columns')[0].children.length,1);assert.equal([...c.timers.values()][0].ms,1250);await c.drain();await promise;
   await c.api.playTurns([{id:3,seat:0,played:[],drawn:null,captures:[],events:[]}],0,profiles);assert.equal(c.timers.size,0);assert.equal(c.get('fp-stage').hidden,true);
 });
 test('cancel resolves pending animation promises and stale timer callbacks cannot mutate a newer stage',async()=>{
@@ -67,26 +67,26 @@ test('cancel resolves pending animation promises and stale timer callbacks canno
   const next=c.api.playTurns([{seat:0,played:[],drawn:null,captures:[],events:['뻑! 세 장 쌓임']}],0,profiles);old();await tick();
   assert.equal(c.get('fp-stage').hidden,false);assert.match(c.byClass('fp-stage-note')[0].textContent,/뻑/);assert.equal(c.timers.size,1);await c.drain();await next;
 });
-test('opening gives each round 700ms backs, 1800ms to read ranks and 2500ms for the outcome',async()=>{
+test('opening gives each round 1750ms backs, 4500ms to read ranks and 6250ms for the outcome',async()=>{
   const c=client(),opening={id:'opening',rounds:[{hands:[[cards[0],cards[4]],[cards[8],cards[12]]],labels:['삼끗','삼끗'],winner:null,reason:'동점'},{hands:[[cards[0],cards[1]],[cards[4],cards[8]]],labels:['일땡','오끗'],winner:0,reason:'땡 승리'}],winner:0};
-  const pending=c.api.showOpening(opening,1,profiles);assert.equal(c.get('fp-stage').attributes['data-kind'],'opening');assert.equal(c.byClass('fp-card-back').length,4);assert.equal([...c.timers.values()][0].ms,700);
-  await c.next();assert.equal(c.byClass('fp-opening-rank')[0].textContent,'삼끗');assert.equal(c.all().filter(el=>el.tagName==='img').length,4);assert.equal([...c.timers.values()][0].ms,1800);
-  await c.next();assert.match(c.byClass('fp-stage-note')[0].textContent,/무승부/);assert.equal([...c.timers.values()][0].ms,2500);
-  await c.next();assert.equal(c.byClass('fp-card-back').length,4);assert.equal([...c.timers.values()][0].ms,700);
-  await c.next();assert.equal(c.byClass('fp-opening-rank')[1].textContent,'일땡');assert.equal([...c.timers.values()][0].ms,1800);await c.next();
-  assert.match(c.byClass('fp-stage-note')[0].textContent,/첫사람 선!/);assert.equal(c.byClass('is-winner')[0].attributes['data-player'],'0');assert.equal([...c.timers.values()][0].ms,2500);await c.drain();await pending;assert.equal(c.get('fp-stage').hidden,true);
+  const pending=c.api.showOpening(opening,1,profiles);assert.equal(c.get('fp-stage').attributes['data-kind'],'opening');assert.equal(c.byClass('fp-card-back').length,4);assert.equal([...c.timers.values()][0].ms,1750);
+  await c.next();assert.equal(c.byClass('fp-opening-rank')[0].textContent,'삼끗');assert.equal(c.all().filter(el=>el.tagName==='img').length,4);assert.equal([...c.timers.values()][0].ms,4500);
+  await c.next();assert.match(c.byClass('fp-stage-note')[0].textContent,/무승부/);assert.equal([...c.timers.values()][0].ms,6250);
+  await c.next();assert.equal(c.byClass('fp-card-back').length,4);assert.equal([...c.timers.values()][0].ms,1750);
+  await c.next();assert.equal(c.byClass('fp-opening-rank')[1].textContent,'일땡');assert.equal([...c.timers.values()][0].ms,4500);await c.next();
+  assert.match(c.byClass('fp-stage-note')[0].textContent,/첫사람 선!/);assert.equal(c.byClass('is-winner')[0].attributes['data-player'],'0');assert.equal([...c.timers.values()][0].ms,6250);await c.drain();await pending;assert.equal(c.get('fp-stage').hidden,true);
 });
 test('cancelling the longer rank-reading pause resolves the opener without showing a stale winner',async()=>{
   const c=client(),opening={id:'cancel-opening',rounds:[{hands:[[cards[0],cards[1]],[cards[4],cards[8]]],labels:['일땡','오끗'],winner:0}],winner:0};
   const pending=c.api.showOpening(opening,0,profiles);await c.next();const stale=[...c.timers.values()][0].fn;
-  assert.equal([...c.timers.values()][0].ms,1800);c.api.cancel();await pending;assert.equal(c.timers.size,0);assert.equal(c.get('fp-stage').hidden,true);
+  assert.equal([...c.timers.values()][0].ms,4500);c.api.cancel();await pending;assert.equal(c.timers.size,0);assert.equal(c.get('fp-stage').hidden,true);
   stale();await tick();assert.equal(c.get('fp-stage').hidden,true);assert.equal(c.byClass('is-winner').length,0);
 });
 test('reduced-motion mode shortens delays and unknown settlement never invents a coin amount',async()=>{
   const c=client({reduced:true}),pending=c.api.playTurns([{seat:0,played:[cards[0]],drawn:cards[4],captures:[],events:['쪽']}],0,profiles);
-  while(c.timers.size){assert([...c.timers.values()].every(timer=>timer.ms<=200));await c.next();}await pending;
+  while(c.timers.size){assert([...c.timers.values()].every(timer=>timer.ms<=500));await c.next();}await pending;
   const opener=c.api.showOpening({id:'reduced',rounds:[{hands:[[cards[0],cards[1]],[cards[4],cards[8]]],labels:['일땡','오끗'],winner:0}],winner:0},0,profiles);
-  const openingDurations=[];while(c.timers.size){openingDurations.push([...c.timers.values()][0].ms);await c.next();}await opener;assert.deepEqual(openingDurations,[200,200,200]);
+  const openingDurations=[];while(c.timers.size){openingDurations.push([...c.timers.values()][0].ms);await c.next();}await opener;assert.deepEqual(openingDurations,[500,500,500]);
   c.api.showResult({...endData(),settlement:null});assert.equal(c.get('fp-result-delta').textContent,'코인 정산 확인 중');c.api.showResult(endData());assert.equal(c.get('fp-result-delta').textContent,'+28코인');
   const css=fs.readFileSync(path.join(__dirname,'../presentation.css'),'utf8');assert(css.includes('@media(prefers-reduced-motion:reduce)'));
 });
