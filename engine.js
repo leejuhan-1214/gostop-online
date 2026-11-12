@@ -44,12 +44,7 @@ function create(rng=Math.random){
   for(let m=1;m<=12;m++)if(floor.filter(c=>c.month===m).length===3)stacks[m]=null;
   const g={rulesVersion:4,threePpeok:true,hands,floor,deck,players:[player(),player()],turn:0,phase:'play',
     pending:null,stacks,turnContext:null,decisionTiming:null,lastTurns:[],log:'방장이 먼저 시작합니다.',winner:null,result:null};
-  const totals=hands.map(hand=>MONTHS.findIndex((_,i)=>hand.filter(c=>c.month===i+1).length===4)+1);
-  if(totals[0]&&totals[1]){g.phase='end';g.log='양쪽 모두 총통! 무승부입니다.';}
-  else if(totals[0]||totals[1]){
-    const seat=totals[0]?0:1;specialWin(g,seat,'총통');
-    g.log=totals[seat]+'월 총통! 같은 월 네 장으로 7점 승리했습니다.';
-  }
+  // Four same-month cards in a hand are played normally; no instant total win.
   return g;
 }
 function specialWin(g,seat,reason){

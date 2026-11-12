@@ -31,9 +31,25 @@ test('selection rejects an unrelated month',()=>{
 test('a ppeok keeps three identities on the field and the fourth captures the stack',()=>{
   const g=fixture({played:10,floor:[8,24],draw:9});const i=g.deck.findIndex(c=>c.id===11);assert(i>=0);g.hands[1].push(g.deck.splice(i,1)[0]);E.act(g,0,{type:'play',id:10});assert.deepEqual(g.floor.filter(c=>c.month===3).map(c=>c.id).sort((a,b)=>a-b),[8,9,10]);assert.equal(g.stacks[3],0);assert.deepEqual(g.lastTurns[0].captures,[]);assert.equal(g.lastTurns[0].played[0].id,10);assert.equal(g.lastTurns[0].drawn.id,9);E.act(g,1,{type:'play',id:11});assert.deepEqual(g.players[1].won.filter(c=>c.month===3).map(c=>c.id).sort((a,b)=>a-b),[8,9,10,11]);
 });
-test('a fixed sequence eventually exercises total wins with a seven-point result',()=>{
-  let found=0;for(let seed=1;seed<=1000&&found<2;seed++){let x=seed;const rng=()=>((x=(Math.imul(x,1664525)+1013904223)>>>0)/2**32);const g=E.create(rng);if(g.phase==='end'){found++;if(g.winner!==null){assert.equal(g.result.reason,'총통');assert.equal(g.result.total,7);}else assert.equal(g.result,null);}}
-  assert(found>0,'No total occurred in seeded deals');
+test('four same-month cards for either or both players start a playable game without a total win',()=>{
+  for(const [seed,expected] of [[175,[true,false]],[129,[false,true]],[448,[true,true]]]){
+    let x=seed;const g=E.create(()=>((x=(Math.imul(x,1664525)+1013904223)>>>0)/2**32));
+    const four=hand=>hand.some(c=>hand.filter(other=>other.month===c.month).length===4);
+    assert.deepEqual(g.hands.map(four),expected,`seed ${seed} must exercise the intended deal`);
+    assert.equal(g.phase,'play');assert.equal(g.winner,null);assert.equal(g.result,null);E.validate(g);
+    // Actually play each four-card hand, then finish the game with all identities intact.
+    for(let seat=0;seat<2;seat++){
+      const card=g.hands[seat].find(c=>g.hands[seat].filter(other=>other.month===c.month).length===4)||g.hands[seat][0];
+      assert.equal(g.turn,seat);E.act(g,seat,{type:'play',id:card.id});
+      while(g.phase==='choose')E.act(g,g.turn,{type:'choose',id:g.pending.options[0]});
+      E.validate(g);assert.notEqual(g.phase,'end');
+    }
+    let steps=0;while(g.phase!=='end'&&steps++<100){
+      const action=g.phase==='play'?{type:'play',id:g.hands[g.turn][0].id}:g.phase==='choose'?{type:'choose',id:g.pending.options[0]}:{type:'decision',choice:'stop'};
+      E.act(g,g.turn,action);E.validate(g);
+    }
+    assert.equal(g.phase,'end');assert.notEqual(g.result?.reason,'총통');
+  }
 });
 test('scoring uses actual bright, bird, ribbon, double-pi and gukjin identities',()=>{
   const score=ids=>E.score({won:ids.map(pick)});

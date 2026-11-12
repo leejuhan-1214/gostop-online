@@ -93,8 +93,8 @@ async function playTurns(turns,seat,profiles){
   stopStage();const run=epoch,e=ensure();
   for(const turn of turns||[]){
     if(run!==epoch)return;
-    const hasPlay=Boolean(turn.played?.length),hasDraw=Boolean(turn.drawn),acquired=(turn.captures||[]).flatMap(group=>group.cards||[]),events=(turn.events||[]).filter(value=>typeof value==='string');
-    if(!hasPlay&&!hasDraw&&!acquired.length&&!events.length)continue;
+    const hasPlay=Boolean(turn.played?.length),hasDraw=Boolean(turn.drawn),events=(turn.events||[]).filter(value=>typeof value==='string');
+    if(!hasPlay&&!hasDraw&&!events.length)continue;
     const mine=turn.seat===seat;e.stage.setAttribute('data-kind','turn');e.stage.setAttribute('data-self',String(mine));e.stage.setAttribute('data-step','played');
     e.stageKicker.textContent=mine?'내 차례':'상대 차례';e.stageTitle.textContent=nickname(profiles,turn.seat,seat);e.stageNote.textContent='';e.stageNote.setAttribute('data-event','');
     const play=node('div','fp-turn-part'),draw=node('div','fp-turn-part'),played=node('div','fp-stage-cards'),drawn=node('div','fp-stage-cards');
@@ -103,14 +103,12 @@ async function playTurns(turns,seat,profiles){
     if(hasPlay){cardsInto(played,turn.played);columns.append(play);}
     if(hasDraw){drawn.append(cardNode(null,{back:true}));columns.append(draw);}
     columns.setAttribute('data-columns',String(Number(hasPlay)+Number(hasDraw)));columns.hidden=!hasPlay&&!hasDraw;
-    const captures=node('div','fp-capture-area');captures.hidden=true;
-    e.stageBody.replaceChildren(columns,captures);e.stage.hidden=false;
+    e.stageBody.replaceChildren(columns);e.stage.hidden=false;
     if(hasPlay){e.stageNote.textContent='손패를 냈습니다.';if(!await wait(500,run))return;}
     if(hasDraw){e.stage.setAttribute('data-step','drawn');cardsInto(drawn,[turn.drawn]);e.stageNote.textContent='더미에서 한 장을 뒤집었습니다.';if(!await wait(500,run))return;}
-    if(acquired.length||events.length){
-      e.stage.setAttribute('data-step','captured');e.stageNote.textContent=events.join(' · ')||`${acquired.length}장 획득`;
-      e.stageNote.setAttribute('data-event',events.some(value=>value.includes('뻑'))?'ppuk':'capture');
-      if(acquired.length){const pile=node('div','fp-captured-cards');cardsInto(pile,acquired);captures.append(node('span','fp-step-label',`가져온 패 ${acquired.length}장`),pile);captures.hidden=false;}
+    if(events.length){
+      e.stage.setAttribute('data-step','event');e.stageNote.textContent=events.join(' · ');
+      e.stageNote.setAttribute('data-event',events.some(value=>value.includes('뻑'))?'ppuk':'special');
       if(!await wait(650,run))return;
     }
   }
@@ -125,12 +123,12 @@ async function showOpening(opening,seat,profiles){
     const round=opening.rounds[index];e.stageNote.setAttribute('data-event','opening');e.stageNote.textContent=opening.rounds.length>1?`${index+1}번째 뽑기`:'두 장을 공개합니다.';
     const rows=[seat,1-seat].map(player=>{const box=node('div','fp-opening-player'),name=node('strong','fp-opening-name',`${nickname(profiles,player,seat)}${player===seat?' (나)':''}`),cards=node('div','fp-stage-cards'),label=node('div','fp-opening-rank','패 공개 중');cards.append(cardNode(null,{back:true}),cardNode(null,{back:true}));box.append(name,cards,label);box.setAttribute('data-player',String(player));return{box,cards,label,player};});
     const hands=node('div','fp-opening-hands');hands.append(...rows.map(row=>row.box));e.stageBody.replaceChildren(hands);
-    if(!await wait(350,run))return;
+    if(!await wait(700,run))return;
     for(const row of rows){cardsInto(row.cards,round.hands?.[row.player]);row.label.textContent=round.labels?.[row.player]||'패 공개';}
-    if(!await wait(600,run))return;
+    if(!await wait(1800,run))return;
     for(const row of rows)row.box.classList.toggle('is-winner',round.winner===row.player);
     e.stageNote.textContent=round.winner===null?`무승부 · 다시 뽑습니다${round.reason?' · '+round.reason:''}`:`${nickname(profiles,round.winner??opening.winner,seat)} 선!${round.reason?' · '+round.reason:''}`;
-    if(!await wait(850,run))return;
+    if(!await wait(2500,run))return;
   }
   if(run===epoch)e.stage.hidden=true;
 }
