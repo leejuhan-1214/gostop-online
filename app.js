@@ -2,7 +2,7 @@
 const $=id=>document.getElementById(id),API='https://flower-gostop-relay.magic-shark-7297.chatgpt.site',KEY='flower-gostop-session-v1',NAMES=['송학','매화','벚꽃','흑싸리','난초','모란','적싸리','공산','국화','단풍','오동','비'];
 const account=globalThis.FlowerAccount;
 const presentation=globalThis.FlowerPresentation;
-const BOT_HINTS={easy:'쉬운 연습 상대 · 승리 1점당 5코인 (0.5배)',normal:'눈앞의 먹을 패와 점수를 챙깁니다 · 승리 1점당 10코인 (1배)',hard:'족보 완성과 상대의 득점까지 계산합니다 · 승리 1점당 20코인 (2배)'};
+const BOT_HINTS={easy:'쉬운 연습 상대 · 승리 1점당 5코인 (0.5배)',normal:'눈앞의 먹을 패와 점수를 챙깁니다 · 승리 1점당 10코인 (1배)',hard:'족보 완성과 상대의 득점까지 계산합니다 · 승패 모두 1점당 20코인 (2배)'};
 let session=null,lastView=null,revision=-1,timer=null,generation=0,busy=false,offline=false,previewing=false,previewTimer=null,previewResolve=null,entering=false,leaving=false,playerProfiles=[];
 let roundMatchId=null,presentedMatchId=null,settlement=null,rematchState=null,receivedRevision=-1,visualSequence=0,animationQueue=Promise.resolve(),animationPending=0,animating=false;
 function cancelPresentation(){presentation?.cancel();presentation?.hideResult();roundMatchId=null;presentedMatchId=null;settlement=null;rematchState=null;receivedRevision=-1;visualSequence=0;animationQueue=Promise.resolve();animationPending=0;animating=false;}
@@ -146,7 +146,8 @@ async function enter(path,data){if(entering)return;await account?.ready;if(enter
 function resumeAccount(){const p=account?.getProfile();if(!session&&!entering&&!leaving&&p?.activeRoom)start({...p.activeRoom,userId:p.id});}
 async function leaveRoom(){
   if(!session||leaving)return false;
-  if(lastView&&lastView.phase!=='end'&&!confirm('지금 나가면 기권패로 정산됩니다. 상대의 최종 점수(최소 7점)를 1점당 10코인으로 차감합니다. 봇 대전은 가진 코인까지만 잃습니다. 나갈까요?'))return false;
+  const coinsPerPoint=session.mode==='bot'&&session.difficulty==='hard'?20:10;
+  if(lastView&&lastView.phase!=='end'&&!confirm(`지금 나가면 기권패로 정산됩니다. 상대의 최종 점수(최소 7점)를 1점당 ${coinsPerPoint}코인으로 차감합니다. 봇 대전은 가진 코인까지만 잃습니다. 나갈까요?`))return false;
   leaving=true;busy=true;updateButtons();const current=session;let message='';
   try{const result=await request('/leave',{data:{code:current.code},token:current.token});if(session!==current)return false;reset();applyAccount(result);return true;}
   catch(e){if(session!==current)return false;if(e.status===404){reset();return true;}message=e.message;return false;}
