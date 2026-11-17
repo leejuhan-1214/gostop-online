@@ -56,7 +56,7 @@ function renderResult(data){
   e.details.textContent=scoreDetails(data.view);
   const total=finalScore(data),mode=data.rematch?.mode||data.settlement?.mode;
   if(mode==='bot'&&outcome==='win'&&Number.isFinite(delta)&&Number.isFinite(total))e.details.textContent+=` · 봇 승리 보상 ${format(total)}점 → ${format(delta)}코인`;
-  if(mode==='bot'&&delta<0&&Number.isFinite(total)&&Math.abs(delta)<total)e.details.textContent+=' · 가진 코인까지만 차감';
+  if(mode==='bot'&&delta<0)e.details.textContent+=' · 봇 패배는 가진 코인까지만 차감';
   e.players.replaceChildren(...[self,1-self].map(seat=>{const row=node('div','fp-result-player');row.append(node('span','fp-result-player-name',`${nickname(data.profiles,seat,self)}${seat===self?' (나)':''}`),node('strong','',`${format(data.view?.players?.[seat]?.score?.total)}점`));return row;}));
   renderRematch();
 }
